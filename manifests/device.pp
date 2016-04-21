@@ -1,3 +1,6 @@
+# Resource: syncthing::device
+#
+# This resource adds device entry to config.xml
 define syncthing::device
 (
   $home_path,
