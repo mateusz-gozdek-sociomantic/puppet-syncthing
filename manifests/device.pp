@@ -45,6 +45,7 @@ define syncthing::device
     ]
   }
 
+  augeas { 
   augeas { "configure instance ${home_path} device ${id}":
     incl    => $instance_config_xml_path,
     lens    => 'Xml.lns',
@@ -55,17 +56,18 @@ define syncthing::device
       Service['syncthing'],
     ],
 
-    require => [
-      Class['syncthing'],
+      require => [
+        Class['syncthing'],
     ],
   }
 
-  if ! defined(Syncthing::Address[$address]) {
-    ::syncthing::address{ $address:
-      home_path => $home_path,
-      device_id => $id,
-      require   => Augeas["configure instance ${home_path} device ${id}"],
+    any2array($address).each | $address_single | {
+      ::syncthing::address{ "${id}:${address_single}":
+        home_path => $home_path,
+        address   => $address_single,
+        device_id => $id,
+        require   => Augeas["configure instance ${home_path} device ${id}"],
+      }
     }
-  }
 
 }
