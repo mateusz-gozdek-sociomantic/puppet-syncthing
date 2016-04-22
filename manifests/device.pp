@@ -61,6 +61,7 @@ define syncthing::device
         "set device[#attribute/id='${id}']/#attribute/introducer ${introducer}",
 			],
       onlyif => "match device[#attribute/id='${id}'] size == 0",
+      before => Syncthing::Address["${id}:${address}"],
     }
 
   } else {
@@ -73,6 +74,13 @@ define syncthing::device
       onlyif => "match device[#attribute/id='${id}'] size > 0",
     }
 
+  }
+
+  ::syncthing::address{ "${id}:${address}":
+    home_path => $home_path,
+    device_id => $id,
+    address   => $address,
+    ensure    => $ensure,
   }
 
 }
