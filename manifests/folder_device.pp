@@ -15,7 +15,7 @@ define syncthing::folder_device
   $instance_config_xml_path = "${home_path}/config.xml"
 
   if $ensure == 'present' {
-    $changes = "set folder[#attribute/id='${folder_id}']/device/#attribute/id ${device_id}"
+    $changes = "set folder[#attribute/id='${folder_id}']/device[last()+1]/#attribute/id '${device_id}'"
   } else {
     $changes = "rm folder[#attribute/id='${folder_id}']/device[#attribute/id='${device_id}']"
   }
