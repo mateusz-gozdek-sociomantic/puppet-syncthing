@@ -24,14 +24,23 @@ define syncthing::device
 
   if $ensure == 'present' {
     $changes = [
-      "set device[#attribute/id='${id}']/#attribute/id ${id}",
-      "set device[#attribute/id='${id}']/#attribute/name ${device_name}",
-      "set device[#attribute/id='${id}']/#attribute/compression ${compression}",
-      "set device[#attribute/id='${id}']/#attribute/introducer ${introducer}",
-      "set device[#attribute/id='${id}']/#attribute/introducer ${introducer}",
+      # Insert new #text node after last device
+      "ins #text after device[last()]",
+      # Set content of added #text node to '\t'
+      "set device[last()]/following-sibling::#text[1] '\t'",
+      # Insert new device node after last added #text node
+      "ins device after device[last()]/following-sibling::#text[1]",
+      # Set newly added device id to ${id}
+      "set device[last()]/#attribute/id '${id}'",
+      "set device[#attribute/id='${id}']/#attribute/name '${device_name}'",
+      "set device[#attribute/id='${id}']/#attribute/compression '${compression}'",
+      "set device[#attribute/id='${id}']/#attribute/introducer '${introducer}'",
     ]
   } else {
-    $changes = "rm device[#attribute/id='${id}']"
+    $changes = [
+      "rm device[#attribute/id='2']/preceding-sibling::#text[1]",
+      "rm device[#attribute/id='2']",
+    ]
   }
 
   augeas { "configure instance ${home_path} device ${id}":
@@ -48,4 +57,5 @@ define syncthing::device
       Class['syncthing'],
     ],
   }
+
 }
