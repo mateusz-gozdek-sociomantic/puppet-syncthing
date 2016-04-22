@@ -60,4 +60,12 @@ define syncthing::device
     ],
   }
 
+  if ! defined(Syncthing::Address[$address]) {
+    ::syncthing::address{ $address:
+      home_path => $home_path,
+      device_id => $id,
+      require   => Augeas["configure instance ${home_path} device ${id}"],
+    }
+  }
+
 }
