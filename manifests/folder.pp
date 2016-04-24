@@ -72,4 +72,13 @@ define syncthing::folder
       Class['syncthing'],
     ],
   }
+
+  $devices.each do | $device_id, $ensure |
+    syncthing::folder_device{ 'test':
+      ensure    => $ensure,
+      home_path => $home_path,
+      folder_id => $id,
+      device_id => $device_id,
+    }
+  }
 }
