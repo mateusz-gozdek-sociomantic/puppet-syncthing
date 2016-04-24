@@ -24,7 +24,13 @@ define syncthing::folder
   $instance_config_xml_path = "${home_path}/config.xml"
   
   if $ensure == 'present' {
-    $changes = parseyaml( template('syncthing/config_folder-changes.yaml.erb') )
+    $changes = [
+      "set folder[#attribute/id='${id}']/#attribute/id '${id}'",
+      "set folder[#attribute/id='${id}']/#attribute/path '${path}'",
+      "set folder[#attribute/id='${id}']/#attribute/ro '${ro}'",
+      "set folder[#attribute/id='${id}']/#attribute/rescanIntervalS '${rescanIntervalS}'",
+      "set folder[#attribute/id='${id}']/#attribute/ignorePerms '${ignorePerms}'",
+    ]
   } else {
     $changes = "rm folder[#attribute/id='${id}']"
   }
