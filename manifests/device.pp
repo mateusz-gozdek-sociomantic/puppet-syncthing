@@ -22,6 +22,19 @@ define syncthing::device
 
   $instance_config_xml_path = "${home_path}/config.xml"
 
+  Augeas {
+    incl    => $instance_config_xml_path,
+    lens    => 'Xml.lns',
+    context => "/files${instance_config_xml_path}/configuration",
+		    notify  => [
+      Service['syncthing'],
+    ],
+
+    require => [
+      Class['syncthing'],
+    ],
+	}
+
   if $ensure == 'present' {
     $changes = [
       "set device[#attribute/id='${id}']/#attribute/id ${id}",
@@ -35,17 +48,6 @@ define syncthing::device
   }
 
   augeas { "configure instance ${home_path} device ${id}":
-    incl    => $instance_config_xml_path,
-    lens    => 'Xml.lns',
-    context => "/files${instance_config_xml_path}/configuration",
     changes => $changes,
-
-    notify  => [
-      Service['syncthing'],
-    ],
-
-    require => [
-      Class['syncthing'],
-    ],
   }
 }
