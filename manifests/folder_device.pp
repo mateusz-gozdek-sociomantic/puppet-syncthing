@@ -14,18 +14,10 @@ define syncthing::folder_device
 
   $instance_config_xml_path = "${home_path}/config.xml"
 
-  if $ensure == 'present' {
-    $changes = "set folder[#attribute/id='${folder_id}']/device/#attribute/id ${device_id}"
-  } else {
-    $changes = "rm folder[#attribute/id='${folder_id}']/device[#attribute/id='${device_id}']"
-  }
-
-  augeas { "configure instance ${home_path} folder ${folder_id} device ${device_id}":
+  Augeas {
     incl    => $instance_config_xml_path,
     lens    => 'Xml.lns',
     context => "/files${instance_config_xml_path}/configuration",
-    changes => $changes,
-
     notify  => [
       Service['syncthing'],
     ],
@@ -33,5 +25,15 @@ define syncthing::folder_device
     require => [
       Class['syncthing'],
     ],
+  }
+
+  if $ensure == 'present' {
+    $changes = "set folder[#attribute/id='${folder_id}']/device/#attribute/id ${device_id}"
+  } else {
+    $changes = "rm folder[#attribute/id='${folder_id}']/device[#attribute/id='${device_id}']"
+  }
+
+  augeas { "configure instance ${home_path} folder ${folder_id} device ${device_id}":
+    changes => $changes,
   }
 }
