@@ -43,4 +43,14 @@ define syncthing::folder
       Class['syncthing'],
     ],
   }
+
+  $devices.each | $device_id, $ensure | {
+    syncthing::folder_device{ "${id}:${device_id}":
+      ensure    => $ensure,
+      home_path => $home_path,
+      device_id => $device_id,
+      folder_id => $id,
+      require   => Augeas["configure instance ${home_path} folder ${id}"],
+    }
+  }
 }
