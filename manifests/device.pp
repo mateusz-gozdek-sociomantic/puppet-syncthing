@@ -16,27 +16,67 @@ define syncthing::device
   if ! defined(Class['syncthing']) {
     fail('You must include the syncthing base class before using any syncthing defined resources')
   }
+  
+  validate_re($compression, '^(metadata|always|never)$')
+  validate_bool($introducer)
 
   $instance_config_xml_path = "${home_path}/config.xml"
-
-  if $ensure == 'present' {
-    $changes = parseyaml( template('syncthing/config_device-changes.yaml.erb') )
-  } else {
-    $changes = "rm device[#attribute/id='${id}']"
-  }
-
-  augeas { "configure instance ${home_path} device ${id}":
+  
+  Augeas {
     incl    => $instance_config_xml_path,
     lens    => 'Xml.lns',
     context => "/files${instance_config_xml_path}/configuration",
-    changes => $changes,
-
-    notify  => [
+		    notify  => [
       Service['syncthing'],
     ],
 
     require => [
       Class['syncthing'],
     ],
+	}
+
+  if $ensure == 'present' {
+
+    augeas { "update device ${id} in instance ${home_path}":
+      changes => [
+        "set device[#attribute/id='${id}']/#attribute/name ${device_name}",
+        "set device[#attribute/id='${id}']/#attribute/compression ${compression}",
+        "set device[#attribute/id='${id}']/#attribute/introducer ${introducer}",
+      ],
+      onlyif => "match device[#attribute/id='${id}'] size > 0",
+    }
+
+    augeas { "create device ${id} in instance ${home_path}":
+      changes => [
+        "ins #text after device[last()]",
+        "set device[last()]/following-sibling::#text[1] '    '",
+        "ins device after device[last()]/following-sibling::#text[1]",
+        "set device[last()]/#attribute/id ${id}",
+        "set device[#attribute/id='${id}']/#attribute/name ${device_name}",
+        "set device[#attribute/id='${id}']/#attribute/compression ${compression}",
+        "set device[#attribute/id='${id}']/#attribute/introducer ${introducer}",
+			],
+      onlyif => "match device[#attribute/id='${id}'] size == 0",
+      before => Syncthing::Address["${id}:${address}"],
+    }
+
+  } else {
+
+    augeas { "remove device ${id} in instance ${home_path}":
+      changes => [
+        "rm device[#attribute/id='${id}']/preceding-sibling::#text[1]",
+        "rm device[#attribute/id='${id}']",
+      ],
+      onlyif => "match device[#attribute/id='${id}'] size > 0",
+    }
+
   }
+
+  ::syncthing::address{ "${id}:${address}":
+    home_path => $home_path,
+    device_id => $id,
+    address   => $address,
+    ensure    => $ensure,
+  }
+
 }
